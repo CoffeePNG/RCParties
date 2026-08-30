@@ -1,0 +1,15 @@
+name: RCParties
+version: '${project.version}'
+main: gg.rc.parties.RCParties
+api-version: '1.21'
+description: Game-agnostic player grouping. Parties, invites, and activity locks for other RC plugins.
+author: RC
+website: https://github.com/CoffeePNG/RCParties
+
+permissions:
+  rcparties.use:
+    description: Use the /party commands.
+    default: true
+  rcparties.admin:
+    description: Inspect, force-disband, and clear stuck activity locks.
+    default: op
