@@ -18,8 +18,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>25</maven.compiler.release>
-    <paper.version>26.2.build.121-stable</paper.version>
+    <maven.compiler.release>21</maven.compiler.release>
+    <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
     <junit.version>5.11.3</junit.version>
   </properties>
 
@@ -27,6 +27,7 @@
     <repository>
       <id>papermc</id>
       <url>https://repo.papermc.io/repository/maven-public/</url>
+      <snapshots><enabled>true</enabled></snapshots>
     </repository>
   </repositories>
 

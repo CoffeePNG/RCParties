@@ -2,6 +2,10 @@
 
 Game-agnostic player grouping for Purpur/Paper. Implements **RC-SPEC-PARTIES-001**.
 
+> **This branch targets Paper/Purpur 1.21.11 on Java 21.** The `main` line targets
+> Purpur 26.2 on Java 25. The two differ only in `pom.xml` — no source differs — so
+> changes port between them cleanly.
+
 RCParties provides parties (a leader plus members, formed via invites) and a public API
 plus event surface that any minigame or system plugin consumes. It knows nothing about
 golf, racing, fishing, or betting — the moment a game concept leaks in, the reason to
@@ -23,7 +27,11 @@ split it from RCPuttPutt is gone.
 
 ## Build
 
-Requires JDK 25 (Purpur 26.2 / Paper 26.2 target).
+Requires JDK 21 (Paper 1.21.11 target).
+
+Note that `paper-api` for 1.21.11 is published as a `-SNAPSHOT`, so a clean build resolves
+whatever is current upstream. Pin `paper.version` to a dated snapshot if you need
+reproducible builds.
 
 ```
 mvn clean package
