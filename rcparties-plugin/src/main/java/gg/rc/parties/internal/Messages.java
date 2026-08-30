@@ -43,26 +43,9 @@ public final class Messages {
 
     /** Player-facing wording for a refusal, so every command reports failures identically. */
     public Component forOutcome(PartyOutcome outcome) {
-        return switch (outcome) {
-            case SUCCESS -> Component.empty();
-            case ALREADY_IN_PARTY -> render("already-in-party",
-                    "<red>You are already in a party. Leave it first.</red>");
-            case NOT_IN_PARTY -> render("not-in-party", "<red>You are not in a party.</red>");
-            case TARGET_NOT_IN_PARTY -> render("target-not-in-party",
-                    "<red>That player is not in your party.</red>");
-            case TARGET_ALREADY_IN_PARTY -> render("target-already-in-party",
-                    "<red>That player is already in a party.</red>");
-            case NOT_LEADER -> render("not-leader", "<red>Only the party leader can do that.</red>");
-            case PARTY_FULL -> render("party-full", "<red>That party is full.</red>");
-            case LOCKED -> render("locked-cant-leave",
-                    "<red>Leave your current activity before leaving the party.</red>");
-            case NO_INVITE -> render("no-invite", "<red>You have no pending invite from that player.</red>");
-            case INVITE_PENDING -> render("invite-pending",
-                    "<red>That player already has a pending invite from your party.</red>");
-            case INVITES_LEADER_ONLY -> render("invites-leader-only",
-                    "<red>Only the party leader can invite players.</red>");
-            case SELF_TARGET -> render("self-target", "<red>You cannot target yourself.</red>");
-            case CANCELLED -> render("cancelled", "<red>That action was blocked.</red>");
-        };
+        if (outcome.isSuccess()) {
+            return Component.empty();
+        }
+        return render(outcome.messageKey(), outcome.defaultMessage());
     }
 }
