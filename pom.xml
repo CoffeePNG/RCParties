@@ -50,6 +50,30 @@
   </dependencyManagement>
 
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-jdk</id>
+            <phase>validate</phase>
+            <goals><goal>enforce</goal></goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <!-- Fail with a message that names the JDK, rather than javac's
+                       bare "release version N not supported". -->
+                  <version>[21,)</version>
+                  <message>This branch (legacy/1.21.11) targets Paper 1.21.11 and requires JDK 21 or newer. Point JAVA_HOME at a JDK 21+ install. Note the 26.2 branch requires JDK 25 instead.</message>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
     <pluginManagement>
       <plugins>
         <plugin>
