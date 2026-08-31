@@ -23,7 +23,11 @@ split it from RCPuttPutt is gone.
 
 ## Build
 
-Requires JDK 25 (Purpur 26.2 / Paper 26.2 target).
+Requires **JDK 25** (Purpur 26.2 / Paper 26.2 target). The build checks this up front and
+tells you if `JAVA_HOME` points somewhere older.
+
+For servers still on 1.21.11, build the `legacy/1.21.11` branch instead, which targets
+Paper 1.21.11 on JDK 21. The two branches differ only in `pom.xml`.
 
 ```
 mvn clean package
