@@ -1,0 +1,73 @@
+# RCParties message catalog (RCUI bundled defaults).
+#
+# This is the BUNDLED shape: a flat message tree at the root. It is deliberately NOT the
+# schema-version / messages: shape RCUI writes for operators under plugins/RCUI/messages/.
+# RCUI's validator rejects that shape here and disables the plugin at boot.
+#
+# Rules RCUI enforces on this file:
+#   - every leaf is a non-blank string (only 'prefix' may be blank)
+#   - keys match [a-z0-9][a-z0-9_-]*(.[a-z0-9][a-z0-9_-]*)*
+#   - every value parses as MiniMessage
+#   - the only non-message root keys allowed are prefix, legacy-prefixes, removed-paths
+#
+# There is no fallback: a key referenced by code but missing here throws
+# MissingMessageException at send time. MessagesTest guards that.
+#
+# Operators edit plugins/RCUI/messages/rcparties.yml, NOT this file. RCUI rewrites that
+# file and drops comments, so this packaged copy is the annotated reference.
+#
+# NOTE: the prefix below is seeded into the operator catalog exactly ONCE, on first run.
+# Changing it here will not update a server that has already started RCParties.
+
+prefix: '<gradient:#FF7F50:#DB7093:#9370DB:#87CEFA>RCParties</gradient> <#A9A9A9>»</#A9A9A9> '
+
+# Body copy is <#A9A9A9> with <white> for interpolated values, per the RC house style.
+party:
+  created: '<#A9A9A9>Party created. Invite someone with <white>/party invite <player></white>.</#A9A9A9>'
+  invite-sent: '<#A9A9A9>Invited <white><player></white>. The invite expires in <white><seconds></white>s.</#A9A9A9>'
+  invited: '<#A9A9A9><white><player></white> invited you. <hover:show_text:''Click to accept''><click:run_command:''/party accept <leader>''><white>/party accept <leader></white></click></hover></#A9A9A9>'
+  joined: '<#A9A9A9><white><player></white> joined the party.</#A9A9A9>'
+  denied: '<#A9A9A9>Invite declined.</#A9A9A9>'
+  deny-notice: '<#A9A9A9><white><player></white> declined your invite.</#A9A9A9>'
+  left: '<#A9A9A9>You left the party.</#A9A9A9>'
+  member-left: '<#A9A9A9><white><player></white> left the party.</#A9A9A9>'
+  kicked: '<#A9A9A9>You were removed from the party.</#A9A9A9>'
+  member-kicked: '<#A9A9A9><white><player></white> was removed from the party.</#A9A9A9>'
+  promoted: '<#A9A9A9><white><player></white> is now the party leader.</#A9A9A9>'
+  disbanded: '<#A9A9A9>The party was disbanded.</#A9A9A9>'
+  pending-invite: '<#A9A9A9>Pending invite from <white><player></white>.</#A9A9A9>'
+
+# List rows are sent unprefixed (component()), so the prefix appears once on the header.
+list:
+  header: '<#A9A9A9>Party <white>(<size>/<max>)</white></#A9A9A9>'
+  leader: '<#A9A9A9> - <white><player></white> (leader)</#A9A9A9>'
+  member: '<#A9A9A9> - <white><player></white></#A9A9A9>'
+  locked: '<#A9A9A9>In an activity: <white><locks></white></#A9A9A9>'
+
+error:
+  already-in-party: '<#A9A9A9>You are already in a party. Leave it first.</#A9A9A9>'
+  not-in-party: '<#A9A9A9>You are not in a party.</#A9A9A9>'
+  target-not-in-party: '<#A9A9A9>That player is not in your party.</#A9A9A9>'
+  target-already-in-party: '<#A9A9A9>That player is already in a party.</#A9A9A9>'
+  not-leader: '<#A9A9A9>Only the party leader can do that.</#A9A9A9>'
+  party-full: '<#A9A9A9>That party is full.</#A9A9A9>'
+  locked-cant-leave: '<#A9A9A9>Leave your current activity before leaving the party.</#A9A9A9>'
+  no-invite: '<#A9A9A9>You have no pending invite from that player.</#A9A9A9>'
+  invite-pending: '<#A9A9A9>That player already has a pending invite from your party.</#A9A9A9>'
+  invites-leader-only: '<#A9A9A9>Only the party leader can invite players.</#A9A9A9>'
+  self-target: '<#A9A9A9>You cannot target yourself.</#A9A9A9>'
+  cancelled: '<#A9A9A9>That action was blocked.</#A9A9A9>'
+  players-only: '<#A9A9A9>Only players can use <white>/party</white>.</#A9A9A9>'
+
+admin:
+  party-count: '<#A9A9A9>Live parties: <white><count></white></#A9A9A9>'
+  party-row: '<#A9A9A9> - <white><id></white> leader=<white><leader></white> members=<white><size></white> locks=<white><locks></white></#A9A9A9>'
+  not-in-party: '<#A9A9A9><white><player></white> is not in a party.</#A9A9A9>'
+  inspect-header: '<#A9A9A9><white><id></white> leader=<white><leader></white> created=<white><created></white> locks=<white><locks></white> metadata=<white><metadata></white></#A9A9A9>'
+  inspect-member: '<#A9A9A9>   <white><player></white> <uuid></#A9A9A9>'
+  invalid-party-id: '<#A9A9A9>Not a valid party id: <white><id></white></#A9A9A9>'
+  disbanded: '<#A9A9A9>Party disbanded.</#A9A9A9>'
+  no-such-party: '<#A9A9A9>No such party.</#A9A9A9>'
+  locks-cleared: '<#A9A9A9>Activity locks cleared.</#A9A9A9>'
+  no-locks: '<#A9A9A9>No locks to clear.</#A9A9A9>'
+  reloaded: '<#A9A9A9>RCParties config reloaded.</#A9A9A9>'

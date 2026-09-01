@@ -20,6 +20,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>25</maven.compiler.release>
     <paper.version>26.2.build.121-stable</paper.version>
+    <rcui.version>3.0.0</rcui.version>
+    <rcplatform.version>1.0.0</rcplatform.version>
     <junit.version>5.11.3</junit.version>
   </properties>
 
@@ -36,6 +38,20 @@
         <groupId>io.papermc.paper</groupId>
         <artifactId>paper-api</artifactId>
         <version>${paper.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <!-- RCUI ships its API inside its own plugin jar, and RCUI needs RCPlatform.
+           Both MUST stay 'provided': a second copy on the server is a LinkageError. -->
+      <dependency>
+        <groupId>net.republicraft</groupId>
+        <artifactId>RCUI</artifactId>
+        <version>${rcui.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.republicraft.platform</groupId>
+        <artifactId>rcplatform-api</artifactId>
+        <version>${rcplatform.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>

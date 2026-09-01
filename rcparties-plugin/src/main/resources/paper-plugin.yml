@@ -6,6 +6,13 @@ description: Game-agnostic player grouping. Parties, invites, and activity locks
 author: RC
 website: https://github.com/CoffeePNG/RCParties
 
+dependencies:
+  server:
+    RCUI:
+      load: BEFORE
+      required: true
+      join-classpath: true
+
 permissions:
   rcparties.use:
     description: Use the /party commands.

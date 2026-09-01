@@ -2,67 +2,70 @@ package gg.rc.parties.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.republicraft.rcui.api.MessageBundle;
 
 /**
- * Renders the configurable MiniMessage strings from config.yml. Every player-facing string
- * in the plugin goes through here, so server owners can reword all of it and nothing is
- * hardcoded past the built-in fallback.
+ * The single seam between RCParties and RCUI's catalog. Nothing else in the plugin touches
+ * {@link MessageBundle} directly, which keeps two decisions in one place: how a value
+ * becomes a placeholder, and which messages carry the RC prefix.
+ *
+ * <p><b>The trust boundary.</b> A {@link Component} argument is trusted and renders as
+ * markup; anything else is inserted as literal text. Config-authored strings are meant to
+ * render, but a player name must never be able to smuggle MiniMessage tags into a
+ * broadcast — pass a raw name and it is escaped, pass a Component and you have said
+ * explicitly that you trust it.
  */
 public final class Messages {
 
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
-    private volatile PartiesConfig config;
+    private final MessageBundle bundle;
 
-    public Messages(PartiesConfig config) {
-        this.config = config;
+    public Messages(MessageBundle bundle) {
+        this.bundle = bundle;
     }
 
-    public void setConfig(PartiesConfig config) {
-        this.config = config;
+    /** Prefixed, for chat sent to a player. */
+    public void send(Audience audience, String key, Object... placeholders) {
+        audience.sendMessage(bundle.message(key, resolvers(placeholders)));
+    }
+
+    /** Prefixed, when the caller needs the component rather than sending it. */
+    public Component message(String key, Object... placeholders) {
+        return bundle.message(key, resolvers(placeholders));
+    }
+
+    /** Unprefixed, for list rows, action bars, and composition. */
+    public Component component(String key, Object... placeholders) {
+        return bundle.component(key, resolvers(placeholders));
+    }
+
+    /** Sends the wording for a refusal, so every command reports failures identically. */
+    public void sendOutcome(Audience audience, PartyOutcome outcome) {
+        if (outcome.isSuccess()) {
+            return;
+        }
+        send(audience, outcome.messageKey());
     }
 
     /**
-     * Renders {@code messages.<key>} with {@code <placeholder>} substitutions.
-     *
-     * @param placeholders alternating name/value pairs, e.g. {@code "player", "Steve"}
+     * Converts alternating name/value pairs into resolvers, applying the trust boundary
+     * described above.
      */
-    public Component render(String key, String fallback, String... placeholders) {
+    private static TagResolver[] resolvers(Object... placeholders) {
         if (placeholders.length % 2 != 0) {
             throw new IllegalArgumentException("placeholders must be name/value pairs");
         }
         List<TagResolver> resolvers = new ArrayList<>(placeholders.length / 2);
         for (int i = 0; i < placeholders.length; i += 2) {
-            resolvers.add(Placeholder.unparsed(placeholders[i], placeholders[i + 1]));
+            String name = String.valueOf(placeholders[i]);
+            Object value = placeholders[i + 1];
+            resolvers.add(value instanceof Component component
+                    ? Placeholder.component(name, component)
+                    : Placeholder.unparsed(name, String.valueOf(value)));
         }
-        return miniMessage.deserialize(config.message(key, fallback), TagResolver.resolver(resolvers));
-    }
-
-    /** Player-facing wording for a refusal, so every command reports failures identically. */
-    public Component forOutcome(PartyOutcome outcome) {
-        return switch (outcome) {
-            case SUCCESS -> Component.empty();
-            case ALREADY_IN_PARTY -> render("already-in-party",
-                    "<red>You are already in a party. Leave it first.</red>");
-            case NOT_IN_PARTY -> render("not-in-party", "<red>You are not in a party.</red>");
-            case TARGET_NOT_IN_PARTY -> render("target-not-in-party",
-                    "<red>That player is not in your party.</red>");
-            case TARGET_ALREADY_IN_PARTY -> render("target-already-in-party",
-                    "<red>That player is already in a party.</red>");
-            case NOT_LEADER -> render("not-leader", "<red>Only the party leader can do that.</red>");
-            case PARTY_FULL -> render("party-full", "<red>That party is full.</red>");
-            case LOCKED -> render("locked-cant-leave",
-                    "<red>Leave your current activity before leaving the party.</red>");
-            case NO_INVITE -> render("no-invite", "<red>You have no pending invite from that player.</red>");
-            case INVITE_PENDING -> render("invite-pending",
-                    "<red>That player already has a pending invite from your party.</red>");
-            case INVITES_LEADER_ONLY -> render("invites-leader-only",
-                    "<red>Only the party leader can invite players.</red>");
-            case SELF_TARGET -> render("self-target", "<red>You cannot target yourself.</red>");
-            case CANCELLED -> render("cancelled", "<red>That action was blocked.</red>");
-        };
+        return resolvers.toArray(new TagResolver[0]);
     }
 }

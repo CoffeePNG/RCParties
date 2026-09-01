@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -79,49 +78,41 @@ public final class PartyCommand {
     private void create(Player player) {
         PartyOutcome outcome = manager.create(player.getUniqueId());
         if (outcome.isSuccess()) {
-            player.sendMessage(messages.render("created",
-                    "<green>Party created. Invite someone with <white>/party invite <player></white>.</green>"));
+            messages.send(player, "party.created");
         } else {
-            player.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(player, outcome);
         }
     }
 
     private void invite(Player actor, Player target) {
         PartyOutcome outcome = manager.invite(actor.getUniqueId(), target.getUniqueId());
         if (!outcome.isSuccess()) {
-            actor.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(actor, outcome);
             return;
         }
         long seconds = manager.config().inviteTtlMillis() / 1000L;
-        actor.sendMessage(messages.render("invite-sent",
-                "<green>Invited <white><player></white>. The invite expires in <white><seconds></white>s.</green>",
-                "player", target.getName(), "seconds", String.valueOf(seconds)));
-        target.sendMessage(messages.render("invited",
-                "<green><player> invited you. <hover:show_text:'Click'><click:run_command:'/party accept "
-                        + actor.getName() + "'>/party accept <leader></click></hover></green>",
-                "player", actor.getName(), "leader", actor.getName(), "seconds", String.valueOf(seconds)));
+        messages.send(actor, "party.invite-sent", "player", target.getName(), "seconds", seconds);
+        messages.send(target, "party.invited", "player", actor.getName(), "leader", actor.getName());
     }
 
     private void accept(Player actor, Player from) {
         PartyOutcome outcome = manager.accept(actor.getUniqueId(), from.getUniqueId());
         if (!outcome.isSuccess()) {
-            actor.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(actor, outcome);
             return;
         }
         manager.getParty(actor.getUniqueId()).ifPresent(party ->
-                broadcast(party, messages.render("joined", "<green><player> joined the party.</green>",
-                        "player", actor.getName())));
+                broadcast(party, messages.message("party.joined", "player", actor.getName())));
     }
 
     private void deny(Player actor, Player from) {
         PartyOutcome outcome = manager.deny(actor.getUniqueId(), from.getUniqueId());
         if (!outcome.isSuccess()) {
-            actor.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(actor, outcome);
             return;
         }
-        actor.sendMessage(messages.render("denied", "<gray>Invite declined.</gray>"));
-        from.sendMessage(messages.render("deny-notice", "<gray><player> declined your invite.</gray>",
-                "player", actor.getName()));
+        messages.send(actor, "party.denied");
+        messages.send(from, "party.deny-notice", "player", actor.getName());
     }
 
     private void leave(Player player) {
@@ -129,14 +120,13 @@ public final class PartyCommand {
         Party before = manager.getParty(player.getUniqueId()).orElse(null);
         PartyOutcome outcome = manager.leave(player.getUniqueId());
         if (!outcome.isSuccess()) {
-            player.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(player, outcome);
             return;
         }
-        player.sendMessage(messages.render("left", "<gray>You left the party.</gray>"));
+        messages.send(player, "party.left");
         if (before != null) {
             broadcastExcept(before, player.getUniqueId(),
-                    messages.render("member-left", "<gray><player> left the party.</gray>",
-                            "player", player.getName()));
+                    messages.message("party.member-left", "player", player.getName()));
         }
     }
 
@@ -144,60 +134,53 @@ public final class PartyCommand {
         Party before = manager.getParty(actor.getUniqueId()).orElse(null);
         PartyOutcome outcome = manager.kick(actor.getUniqueId(), target.getUniqueId());
         if (!outcome.isSuccess()) {
-            actor.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(actor, outcome);
             return;
         }
-        target.sendMessage(messages.render("kicked", "<red>You were removed from the party.</red>"));
+        messages.send(target, "party.kicked");
         if (before != null) {
             broadcastExcept(before, target.getUniqueId(),
-                    messages.render("member-kicked", "<gray><player> was removed from the party.</gray>",
-                            "player", target.getName()));
+                    messages.message("party.member-kicked", "player", target.getName()));
         }
     }
 
     private void promote(Player actor, Player target) {
         PartyOutcome outcome = manager.promote(actor.getUniqueId(), target.getUniqueId());
         if (!outcome.isSuccess()) {
-            actor.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(actor, outcome);
             return;
         }
         manager.getParty(actor.getUniqueId()).ifPresent(party ->
-                broadcast(party, messages.render("promoted",
-                        "<green><player> is now the party leader.</green>", "player", target.getName())));
+                broadcast(party, messages.message("party.promoted", "player", target.getName())));
     }
 
     private void disband(Player player) {
         Party before = manager.getParty(player.getUniqueId()).orElse(null);
         PartyOutcome outcome = manager.disband(player.getUniqueId());
         if (!outcome.isSuccess()) {
-            player.sendMessage(messages.forOutcome(outcome));
+            messages.sendOutcome(player, outcome);
             return;
         }
         if (before != null) {
-            broadcast(before, messages.render("disbanded", "<gray>The party was disbanded.</gray>"));
+            broadcast(before, messages.message("party.disbanded"));
         }
     }
 
     private void list(Player player) {
         Party party = manager.getParty(player.getUniqueId()).orElse(null);
         if (party == null) {
-            player.sendMessage(messages.forOutcome(PartyOutcome.NOT_IN_PARTY));
+            messages.sendOutcome(player, PartyOutcome.NOT_IN_PARTY);
             showPendingInvites(player);
             return;
         }
-        player.sendMessage(messages.render("list-header",
-                "<gold>Party</gold> <gray>(<size>/<max>)</gray>",
-                "size", String.valueOf(party.size()), "max", String.valueOf(party.maxSize())));
+        // The header carries the prefix; the rows below are unprefixed so it appears once.
+        messages.send(player, "list.header", "size", party.size(), "max", party.maxSize());
         for (UUID member : party.members()) {
-            boolean leader = party.isLeader(member);
-            player.sendMessage(messages.render(leader ? "list-leader" : "list-member",
-                    leader ? "<gray> - </gray><gold><player> (leader)</gold>"
-                            : "<gray> - <player></gray>",
-                    "player", nameOf(member)));
+            player.sendMessage(messages.component(
+                    party.isLeader(member) ? "list.leader" : "list.member", "player", nameOf(member)));
         }
         if (party.isLocked()) {
-            player.sendMessage(messages.render("list-locked",
-                    "<yellow>In an activity: <locks></yellow>",
+            player.sendMessage(messages.component("list.locked",
                     "locks", String.join(", ", party.activityLocks())));
         }
     }
@@ -205,8 +188,7 @@ public final class PartyCommand {
     private void showPendingInvites(Player player) {
         List<Invite> invites = manager.pendingInvites(player.getUniqueId());
         for (Invite invite : invites) {
-            player.sendMessage(messages.render("pending-invite",
-                    "<gray>Pending invite from <white><player></white>.</gray>",
+            player.sendMessage(messages.component("party.pending-invite",
                     "player", nameOf(invite.from())));
         }
     }
@@ -219,13 +201,13 @@ public final class PartyCommand {
                 .then(Commands.literal("list").executes(ctx -> {
                     CommandSender sender = ctx.getSource().getSender();
                     List<Party> parties = manager.allParties();
-                    sender.sendMessage(Component.text("Live parties: " + parties.size(), NamedTextColor.GOLD));
+                    messages.send(sender, "admin.party-count", "count", parties.size());
                     for (Party party : parties) {
-                        sender.sendMessage(Component.text(
-                                " - " + party.id() + " leader=" + nameOf(party.leader())
-                                        + " members=" + party.size()
-                                        + " locks=" + party.activityLocks(),
-                                NamedTextColor.GRAY));
+                        sender.sendMessage(messages.component("admin.party-row",
+                                "id", party.id(),
+                                "leader", nameOf(party.leader()),
+                                "size", party.size(),
+                                "locks", party.activityLocks()));
                     }
                     return parties.size();
                 }))
@@ -235,19 +217,18 @@ public final class PartyCommand {
                             Player target = resolveTarget(ctx);
                             Party party = manager.getParty(target.getUniqueId()).orElse(null);
                             if (party == null) {
-                                sender.sendMessage(Component.text(
-                                        target.getName() + " is not in a party.", NamedTextColor.GRAY));
+                                messages.send(sender, "admin.not-in-party", "player", target.getName());
                                 return 0;
                             }
-                            sender.sendMessage(Component.text(
-                                    party.id() + " leader=" + nameOf(party.leader())
-                                            + " created=" + party.createdAt()
-                                            + " locks=" + party.activityLocks()
-                                            + " metadata=" + party.metadata(),
-                                    NamedTextColor.GRAY));
+                            messages.send(sender, "admin.inspect-header",
+                                    "id", party.id(),
+                                    "leader", nameOf(party.leader()),
+                                    "created", party.createdAt(),
+                                    "locks", party.activityLocks(),
+                                    "metadata", party.metadata());
                             for (UUID member : party.members()) {
-                                sender.sendMessage(Component.text("   " + nameOf(member) + " " + member,
-                                        NamedTextColor.DARK_GRAY));
+                                sender.sendMessage(messages.component("admin.inspect-member",
+                                        "player", nameOf(member), "uuid", member));
                             }
                             return 1;
                         })))
@@ -261,9 +242,7 @@ public final class PartyCommand {
                                         return 0;
                                     }
                                     boolean ok = manager.adminDisband(id).isSuccess();
-                                    sender.sendMessage(Component.text(
-                                            ok ? "Party disbanded." : "No such party.",
-                                            ok ? NamedTextColor.GREEN : NamedTextColor.RED));
+                                    messages.send(sender, ok ? "admin.disbanded" : "admin.no-such-party");
                                     return ok ? 1 : 0;
                                 })))
                 .then(Commands.literal("clearlocks")
@@ -276,15 +255,12 @@ public final class PartyCommand {
                                         return 0;
                                     }
                                     boolean cleared = manager.adminClearLocks(id);
-                                    sender.sendMessage(Component.text(
-                                            cleared ? "Activity locks cleared." : "No locks to clear.",
-                                            cleared ? NamedTextColor.GREEN : NamedTextColor.GRAY));
+                                    messages.send(sender, cleared ? "admin.locks-cleared" : "admin.no-locks");
                                     return cleared ? 1 : 0;
                                 })))
                 .then(Commands.literal("reload").executes(ctx -> {
                     reloadSettings.run();
-                    ctx.getSource().getSender().sendMessage(
-                            Component.text("RCParties config reloaded.", NamedTextColor.GREEN));
+                    messages.send(ctx.getSource().getSender(), "admin.reloaded");
                     return 1;
                 }));
     }
@@ -306,7 +282,7 @@ public final class PartyCommand {
     private int playerOnly(CommandContext<CommandSourceStack> ctx, java.util.function.Consumer<Player> action) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use /party.", NamedTextColor.RED));
+            messages.send(sender, "error.players-only");
             return 0;
         }
         action.accept(player);
@@ -316,7 +292,7 @@ public final class PartyCommand {
     private int withTarget(CommandContext<CommandSourceStack> ctx, java.util.function.BiConsumer<Player, Player> action) {
         CommandSender sender = ctx.getSource().getSender();
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use /party.", NamedTextColor.RED));
+            messages.send(sender, "error.players-only");
             return 0;
         }
         action.accept(player, resolveTarget(ctx));
@@ -338,7 +314,7 @@ public final class PartyCommand {
         try {
             return UUID.fromString(raw);
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(Component.text("Not a valid party id: " + raw, NamedTextColor.RED));
+            messages.send(sender, "admin.invalid-party-id", "id", raw);
             return null;
         }
     }

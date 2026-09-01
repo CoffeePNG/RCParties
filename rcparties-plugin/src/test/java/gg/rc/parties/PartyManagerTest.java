@@ -47,7 +47,7 @@ class PartyManagerTest {
 
     private PartyManager newManager(int maxSize, boolean allowMemberInvites) {
         return new PartyManager(
-                new PartiesConfig(maxSize, TTL_SECONDS, allowMemberInvites, Map.of()), events, clock);
+                new PartiesConfig(maxSize, TTL_SECONDS, allowMemberInvites), events, clock);
     }
 
     /** Puts the given players into one party led by the first. */

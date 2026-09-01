@@ -1,8 +1,5 @@
 package gg.rc.parties.internal;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
@@ -20,37 +17,24 @@ public final class PartiesConfig {
     private final int maxPartySize;
     private final long inviteTtlMillis;
     private final boolean allowMemberInvites;
-    private final Map<String, String> messages;
 
-    public PartiesConfig(int maxPartySize, int inviteTtlSeconds, boolean allowMemberInvites,
-                         Map<String, String> messages) {
+    public PartiesConfig(int maxPartySize, int inviteTtlSeconds, boolean allowMemberInvites) {
         this.maxPartySize = Math.max(1, maxPartySize);
         this.inviteTtlMillis = Math.max(1L, inviteTtlSeconds) * 1000L;
         this.allowMemberInvites = allowMemberInvites;
-        this.messages = Map.copyOf(messages);
     }
 
     public static PartiesConfig from(FileConfiguration config) {
-        Map<String, String> messages = new LinkedHashMap<>();
-        ConfigurationSection section = config.getConfigurationSection("messages");
-        if (section != null) {
-            for (String key : section.getKeys(true)) {
-                if (!section.isConfigurationSection(key)) {
-                    messages.put(key, String.valueOf(section.get(key)));
-                }
-            }
-        }
         return new PartiesConfig(
                 config.getInt("max-party-size", DEFAULT_MAX_PARTY_SIZE),
                 config.getInt("invite-ttl-seconds", DEFAULT_INVITE_TTL_SECONDS),
-                config.getBoolean("allow-member-invites", DEFAULT_ALLOW_MEMBER_INVITES),
-                messages);
+                config.getBoolean("allow-member-invites", DEFAULT_ALLOW_MEMBER_INVITES));
     }
 
-    /** Config with every documented default, used by tests and as a fallback. */
+    /** Config with every documented default, used by tests. */
     public static PartiesConfig defaults() {
         return new PartiesConfig(DEFAULT_MAX_PARTY_SIZE, DEFAULT_INVITE_TTL_SECONDS,
-                DEFAULT_ALLOW_MEMBER_INVITES, Map.of());
+                DEFAULT_ALLOW_MEMBER_INVITES);
     }
 
     public int maxPartySize() {
@@ -65,8 +49,4 @@ public final class PartiesConfig {
         return allowMemberInvites;
     }
 
-    /** Raw MiniMessage template for a key, or {@code fallback} when unset. */
-    public String message(String key, String fallback) {
-        return messages.getOrDefault(key, fallback);
-    }
 }

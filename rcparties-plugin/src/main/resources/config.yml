@@ -10,37 +10,9 @@ invite-ttl-seconds: 60
 # When false, only the party leader may send invites.
 allow-member-invites: true
 
-# All MiniMessage. <player>, <leader>, <seconds>, <size>, <max> and <locks> are substituted
-# where they make sense; see the defaults below for which keys accept which placeholders.
-messages:
-  created: "<green>Party created. Invite someone with <white>/party invite <player></white>.</green>"
-  invited: "<green><player> invited you. <hover:show_text:'Click'>/party accept <leader></hover></green>"
-  invite-sent: "<green>Invited <white><player></white>. The invite expires in <white><seconds></white>s.</green>"
-  joined: "<green><player> joined the party.</green>"
-  denied: "<gray>Invite declined.</gray>"
-  deny-notice: "<gray><player> declined your invite.</gray>"
-  left: "<gray>You left the party.</gray>"
-  member-left: "<gray><player> left the party.</gray>"
-  kicked: "<red>You were removed from the party.</red>"
-  member-kicked: "<gray><player> was removed from the party.</gray>"
-  promoted: "<green><player> is now the party leader.</green>"
-  disbanded: "<gray>The party was disbanded.</gray>"
-  list-header: "<gold>Party</gold> <gray>(<size>/<max>)</gray>"
-  list-leader: "<gray> - </gray><gold><player> (leader)</gold>"
-  list-member: "<gray> - <player></gray>"
-  list-locked: "<yellow>In an activity: <locks></yellow>"
-  pending-invite: "<gray>Pending invite from <white><player></white>.</gray>"
-
-  # Refusals
-  already-in-party: "<red>You are already in a party. Leave it first.</red>"
-  not-in-party: "<red>You are not in a party.</red>"
-  target-not-in-party: "<red>That player is not in your party.</red>"
-  target-already-in-party: "<red>That player is already in a party.</red>"
-  not-leader: "<red>Only the party leader can do that.</red>"
-  party-full: "<red>That party is full.</red>"
-  locked-cant-leave: "<red>Leave your current activity before leaving the party.</red>"
-  no-invite: "<red>You have no pending invite from that player.</red>"
-  invite-pending: "<red>That player already has a pending invite from your party.</red>"
-  invites-leader-only: "<red>Only the party leader can invite players.</red>"
-  self-target: "<red>You cannot target yourself.</red>"
-  cancelled: "<red>That action was blocked.</red>"
+# Player-facing wording is NOT here. It lives in RCUI's catalog:
+#   plugins/RCUI/messages/rcparties.yml
+# The packaged src/main/resources/messages.yml is the annotated reference for those keys.
+# If you are upgrading and this file still has a 'messages:' block, it is no longer read --
+# re-apply your wording in RCUI's catalog, then delete the block. RCParties warns on boot
+# while a stale block is present.
