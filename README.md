@@ -89,10 +89,22 @@ Everything here targets **Java 25**.
 Neither is on a public Maven repository, so build them into your local `~/.m2` first, in
 this order (RCUI compiles against `rcplatform-api`):
 
-```sh
-git clone https://github.com/CoffeePNG/RCPlatform && (cd RCPlatform && mvn -B install -DskipTests)
-git clone https://github.com/CoffeePNG/RCUI       && (cd RCUI       && mvn -B install -DskipTests)
 ```
+git clone https://github.com/CoffeePNG/RCPlatform
+cd RCPlatform
+mvn -B install -DskipTests
+cd ..
+
+git clone https://github.com/CoffeePNG/RCUI
+cd RCUI
+mvn -B install -DskipTests
+cd ..
+```
+
+One command per line, so it behaves the same in PowerShell, cmd, and a POSIX shell. If
+either artifact is missing, the build stops at `validate` and prints these steps, instead
+of failing later with a dependency-resolution dump naming repositories that were never
+going to have them.
 
 Server load order is `RCPlatform -> RCUI -> RCParties`.
 

@@ -21,6 +21,8 @@
     <maven.compiler.release>25</maven.compiler.release>
     <paper.version>26.2.build.121-stable</paper.version>
     <rcui.version>3.0.0</rcui.version>
+    <!-- Escape hatch for anyone resolving RCUI/RCPlatform from an internal repository. -->
+    <rcparties.skipDependencyCheck>false</rcparties.skipDependencyCheck>
     <rcplatform.version>1.0.0</rcplatform.version>
     <junit.version>5.11.3</junit.version>
   </properties>
@@ -71,6 +73,39 @@
         <artifactId>maven-enforcer-plugin</artifactId>
         <version>3.5.0</version>
         <executions>
+          <execution>
+            <id>enforce-rc-dependencies</id>
+            <phase>validate</phase>
+            <goals><goal>enforce</goal></goals>
+            <configuration>
+              <skip>${rcparties.skipDependencyCheck}</skip>
+              <rules>
+                <!-- RCUI and RCPlatform are not on any public Maven repository, so a
+                     missing one surfaces as an opaque "Could not find artifact" dump
+                     naming repositories that were never going to have it. Check the
+                     local repository first and say what to actually do about it. -->
+                <requireFilesExist>
+                  <files>
+                    <file>${settings.localRepository}/net/republicraft/platform/rcplatform-api/${rcplatform.version}/rcplatform-api-${rcplatform.version}.jar</file>
+                    <file>${settings.localRepository}/net/republicraft/RCUI/${rcui.version}/RCUI-${rcui.version}.jar</file>
+                  </files>
+                  <message>RCParties needs RCUI ${rcui.version} and RCPlatform ${rcplatform.version} in your local Maven repository. Neither is published to a public repository, so build them yourself IN THIS ORDER (RCUI compiles against rcplatform-api):
+
+  git clone https://github.com/CoffeePNG/RCPlatform
+  cd RCPlatform
+  mvn -B install -DskipTests
+  cd ..
+
+  git clone https://github.com/CoffeePNG/RCUI
+  cd RCUI
+  mvn -B install -DskipTests
+  cd ..
+
+Both require JDK 25, the same as RCParties. If you resolve these from an internal repository instead, skip this check with -Drcparties.skipDependencyCheck=true</message>
+                </requireFilesExist>
+              </rules>
+            </configuration>
+          </execution>
           <execution>
             <id>enforce-jdk</id>
             <phase>validate</phase>
